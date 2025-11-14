@@ -96,7 +96,7 @@ Here are quick explanations in normal language:
 
 1. Download or clone the repo:
    ```bash
-   git clone https://github.com/<your-username>/spotify-top-50-world-analysis.git
+   git clone https://github.com/<Simmii-19>/spotify-top-50-world-analysis.git
 2.View Spotify.pdf to explore the dashboard.
 
 3.If you want to rebuild the dashboard, use the CSV file and DAX measures.

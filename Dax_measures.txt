@@ -1,0 +1,118 @@
+DEFINE
+    // ===== Basic Counts & Aggregates =====
+    MEASURE 'top-50-world'[Total Songs] =
+        COUNTROWS('top-50-world')
+
+    MEASURE 'top-50-world'[Distinct Artists] =
+        DISTINCTCOUNT('top-50-world'[artist])
+
+    MEASURE 'top-50-world'[Distinct Songs] =
+        DISTINCTCOUNT('top-50-world'[song])
+
+    MEASURE 'top-50-world'[Average Popularity] =
+        AVERAGE('top-50-world'[popularity])
+
+    MEASURE 'top-50-world'[Max Popularity] =
+        MAX('top-50-world'[popularity])
+
+    MEASURE 'top-50-world'[Min Popularity] =
+        MIN('top-50-world'[popularity])
+
+    // ===== Chart Performance =====
+    MEASURE 'top-50-world'[Average Position] =
+        AVERAGE('top-50-world'[position])
+
+    MEASURE 'top-50-world'[Best Position] =
+        MIN('top-50-world'[position])
+
+    MEASURE 'top-50-world'[Worst Position] =
+        MAX('top-50-world'[position])
+
+    // ===== Duration & Song Attributes =====
+    MEASURE 'top-50-world'[Average Duration (sec)] =
+        DIVIDE(AVERAGE('top-50-world'[duration_ms]), 1000)
+
+    MEASURE 'top-50-world'[Average Duration (min)] =
+        DIVIDE(AVERAGE('top-50-world'[duration_ms]), 60000)
+
+    MEASURE 'top-50-world'[Longest Song Duration (min)] =
+        DIVIDE(MAX('top-50-world'[duration_ms]), 60000)
+
+    MEASURE 'top-50-world'[Shortest Song Duration (min)] =
+        DIVIDE(MIN('top-50-world'[duration_ms]), 60000)
+
+    // ===== Explicit vs Non-explicit =====
+    MEASURE 'top-50-world'[Explicit Song Count] =
+        CALCULATE(COUNTROWS('top-50-world'), 'top-50-world'[is_explicit] = TRUE())
+
+    MEASURE 'top-50-world'[Non-Explicit Song Count] =
+        CALCULATE(COUNTROWS('top-50-world'), 'top-50-world'[is_explicit] = FALSE())
+
+    MEASURE 'top-50-world'[Explicit Song %] =
+        DIVIDE(
+            [Explicit Song Count],
+            [Total Songs]
+        )
+
+    // ===== Album Analysis =====
+    MEASURE 'top-50-world'[Average Total Tracks] =
+        AVERAGE('top-50-world'[total_tracks])
+
+    MEASURE 'top-50-world'[Distinct Album Types] =
+        DISTINCTCOUNT('top-50-world'[album_type])
+
+    // ===== Temporal Analysis =====
+    MEASURE 'top-50-world'[Earliest Release Year] =
+        YEAR(MIN('top-50-world'[release_date]))
+
+    MEASURE 'top-50-world'[Latest Release Year] =
+        YEAR(MAX('top-50-world'[release_date]))
+
+    MEASURE 'top-50-world'[Average Song Age (Years)] =
+        AVERAGEX(
+            'top-50-world',
+            DATEDIFF('top-50-world'[release_date], TODAY(), YEAR)
+        )
+
+    // ===== Popularity vs. Position Correlation =====
+    MEASURE 'top-50-world'[Popularity-Position Correlation] =
+        VAR avgPop = AVERAGE('top-50-world'[popularity])
+        VAR avgPos = AVERAGE('top-50-world'[position])
+        VAR numerator =
+            SUMX(
+                'top-50-world',
+                ('top-50-world'[popularity] - avgPop) * ('top-50-world'[position] - avgPos)
+            )
+        VAR denominator =
+            SQRT(
+                SUMX('top-50-world', POWER('top-50-world'[popularity] - avgPop, 2)) *
+                SUMX('top-50-world', POWER('top-50-world'[position] - avgPos, 2))
+            )
+        RETURN
+            DIVIDE(numerator, denominator)
+
+EVALUATE
+SUMMARIZECOLUMNS(
+    "Total Songs", [Total Songs],
+    "Distinct Artists", [Distinct Artists],
+    "Distinct Songs", [Distinct Songs],
+    "Average Popularity", [Average Popularity],
+    "Max Popularity", [Max Popularity],
+    "Min Popularity", [Min Popularity],
+    "Average Position", [Average Position],
+    "Best Position", [Best Position],
+    "Worst Position", [Worst Position],
+    "Average Duration (sec)", [Average Duration (sec)],
+    "Average Duration (min)", [Average Duration (min)],
+    "Longest Song Duration (min)", [Longest Song Duration (min)],
+    "Shortest Song Duration (min)", [Shortest Song Duration (min)],
+    "Explicit Song Count", [Explicit Song Count],
+    "Non-Explicit Song Count", [Non-Explicit Song Count],
+    "Explicit Song %", [Explicit Song %],
+    "Average Total Tracks", [Average Total Tracks],
+    "Distinct Album Types", [Distinct Album Types],
+    "Earliest Release Year", [Earliest Release Year],
+    "Latest Release Year", [Latest Release Year],
+    "Average Song Age (Years)", [Average Song Age (Years)],
+    "Popularity-Position Correlation", [Popularity-Position Correlation]
+)
